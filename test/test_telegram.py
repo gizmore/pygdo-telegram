@@ -3,7 +3,7 @@ import unittest
 
 from gdo.base.Application import Application
 from gdo.base.ModuleLoader import ModuleLoader
-from gdo.core.GDO_Server import GDO_Server
+from gdo.core.Connector import Connector
 from gdotest.TestUtil import reinstall_module, cli_plug
 
 
@@ -19,11 +19,6 @@ class TelegramTestCase(unittest.TestCase):
         loader.init_modules()
         reinstall_module('telegram')
         loader.init_cli()
-        return self
 
-    def test_01_starting_thread(self):
-        out = cli_plug(None, "launch --force 1")
-        self.assertTrue(True)
-
-
-
+    def test_01_connector_registered(self):
+        self.assertIn('telegram', Connector.AVAILABLE.keys(), "Connector was not added.")
