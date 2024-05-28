@@ -18,7 +18,9 @@ class TelegramThread(Thread):
         Logger.debug('Running telegram thread.')
         # loop = asyncio.new_event_loop()
         # asyncio.set_event_loop(loop)
+        # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         try:
             await self._connector._application.run_polling()
+            # await self._connector._application.run_polling()
         except RuntimeError:
             raise KeyboardInterrupt

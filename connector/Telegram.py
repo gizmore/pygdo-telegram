@@ -23,7 +23,7 @@ class Telegram(Connector):
     _application: object
     _thread: object
 
-    async def gdo_connect(self) -> None:
+    def gdo_connect(self) -> None:
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
         token = mod.cfg_api_key()
@@ -32,7 +32,9 @@ class Telegram(Connector):
         handler = MessageHandler(None, self.handle_telegram_message)
         self._application.add_handler(handler)
         self._thread = TelegramThread(self)
-        await self._thread.run()
+        # asyncio.run(self._thread.run())
+        asyncio.get_event_loop_policy().get_event_loop().run_until_complete(self._thread.run())
+        # await self._thread.run()
         self._connected = True
         Logger.debug("CONTINUE!")
 
