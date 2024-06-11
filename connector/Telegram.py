@@ -41,7 +41,6 @@ class Telegram(Connector):
         # asyncio.get_event_loop_policy().get_event_loop().run_until_complete(self._thread.run())
         # await self._thread.run()
         self._connected = True
-        Logger.debug("CONTINUE!")
 
     async def handle_telegram_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = update.edited_message or update.message
@@ -49,9 +48,9 @@ class Telegram(Connector):
             Application.fresh_page()
             Application.mode(Mode.TELEGRAM)
             chat = msg.chat
-            text = msg.text
+            text = msg.text.replace('—', '--')
             usr = msg.from_user
-            Logger.debug(f"TG {usr.username} >> {text}")
+            Logger.debug(f"Telegram: {usr.username} >> {text}")
             user = self._server.get_or_create_user(str(usr.id), usr.username)
             message = Message(text, Mode.TELEGRAM)
             message.env_server(self._server)
