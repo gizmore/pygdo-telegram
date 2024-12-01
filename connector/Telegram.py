@@ -65,7 +65,7 @@ class Telegram(Connector):
             Application.EVENTS.publish('new_message', message)
             if text.startswith(trigger):
                 message._message = message._message[1:]
-                await message.execute()
+                asyncio.ensure_future(message.execute())
         except Exception as ex:
             await context.bot.send_message(chat_id=msg.chat.id, text=str(ex), parse_mode='HTML')
             Logger.exception(ex)
