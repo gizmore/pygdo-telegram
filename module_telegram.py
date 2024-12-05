@@ -4,8 +4,10 @@ from gdo.base.GDO_Module import GDO_Module
 from gdo.base.GDT import GDT
 from gdo.core.Connector import Connector
 from gdo.core.GDO_Server import GDO_Server
+from gdo.core.GDO_User import GDO_User
 from gdo.core.GDT_Name import GDT_Name
 from gdo.core.GDT_Secret import GDT_Secret
+from gdo.core.GDT_User import GDT_User
 from gdo.telegram.connector.Telegram import Telegram
 
 
@@ -25,10 +27,14 @@ class module_telegram(GDO_Module):
         except FileNotFoundError:
             pass
         return [
+            GDT_User('telegram_bot'),
             GDT_Name('telegram_bot_name').initial(bot_name),
             GDT_Secret('telegram_user_name').initial(username),
             GDT_Secret('telegram_api_key').initial(apikey),
         ]
+
+    def cfg_bot(self) -> GDO_User:
+        return self.get_config_value('telegram_bot')
 
     def cfg_bot_displayname(self):
         return self.get_config_val('telegram_bot_name')

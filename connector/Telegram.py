@@ -10,6 +10,7 @@ from gdo.base.Message import Message
 from gdo.base.Render import Mode
 from gdo.core.Connector import Connector
 from gdo.core.GDO_Session import GDO_Session
+from gdo.core.GDO_User import GDO_User
 from gdo.telegram.connector.TelegramThread import TelegramThread
 
 import nest_asyncio
@@ -21,7 +22,7 @@ nest_asyncio.apply()
 
 class Telegram(Connector):
     _application: object
-    _thread: object
+    _thread: TelegramThread
 
     def get_render_mode(self) -> Mode:
         return Mode.TELEGRAM
@@ -35,11 +36,7 @@ class Telegram(Connector):
         handler = MessageHandler(None, self.handle_telegram_message)
         self._application.add_handler(handler)
         self._thread = TelegramThread(self)
-        # asyncio.run(self._thread.run())
         asyncio.create_task(self._thread.run())
-        # await self._thread.run()
-        # asyncio.get_event_loop_policy().get_event_loop().run_until_complete(self._thread.run())
-        # await self._thread.run()
         self._connected = True
 
     async def handle_telegram_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -48,6 +45,7 @@ class Telegram(Connector):
             Application.fresh_page()
             Application.mode(Mode.TELEGRAM)
             chat = msg.chat
+            self.get_or_create_dog(chat._bot)
             text = msg.text.replace('—', '--')
             usr = msg.from_user
             Logger.debug(f"Telegram: {usr.username} >> {text}")
@@ -56,16 +54,11 @@ class Telegram(Connector):
             message.env_server(self._server)
             message.env_user(user)
             message.env_session(GDO_Session.for_user(user))
-            if chat.type == ChatType.PRIVATE:
-                trigger = self._server.get_trigger()
-            else:
+            if chat.type == ChatType.CHANNEL:
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
-                trigger = channel.get_trigger()
                 message.env_channel(channel)
-            Application.EVENTS.publish('new_message', message)
-            if text.startswith(trigger):
-                message._message = message._message[1:]
-                asyncio.ensure_future(message.execute())
+            asyncio.ensure_future(message.execute())
+
         except Exception as ex:
             await context.bot.send_message(chat_id=msg.chat.id, text=str(ex), parse_mode='HTML')
             Logger.exception(ex)
@@ -90,3 +83,13 @@ class Telegram(Connector):
         except Exception as ex:
             Logger.exception(ex)
 
+    def get_or_create_dog(self, bot):
+        from gdo.telegram.module_telegram import module_telegram
+        mod = module_telegram.instance()
+        user = self._server.get_or_create_user(str(bot.id), bot.username)
+        mod.save_config_val('telegram_bot', user.get_id())
+        return user
+
+    def gdo_get_dog_user(self) -> GDO_User:
+        from gdo.telegram.module_telegram import module_telegram
+        return module_telegram.instance().cfg_bot()
