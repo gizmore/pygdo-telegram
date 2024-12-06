@@ -42,6 +42,7 @@ class Telegram(Connector):
     async def handle_telegram_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = update.edited_message or update.message
         try:
+            Application.tick()
             Application.fresh_page()
             Application.mode(Mode.TELEGRAM)
             chat = msg.chat
