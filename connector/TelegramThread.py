@@ -10,9 +10,6 @@ class TelegramThread(Thread):
         self._connector = connector
 
     async def run(self):
-        # self.name = f"Telegram Thread({self._connector._server.get_name()})"
-        # super().run()
-        # Logger.debug('Running telegram thread.')
         try:
             await self._connector._application.run_polling()
         except RuntimeError:

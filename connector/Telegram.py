@@ -58,10 +58,9 @@ class Telegram(Connector):
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
             asyncio.ensure_future(message.execute())
-
         except Exception as ex:
-            await context.bot.send_message(chat_id=msg.chat.id, text=str(ex), parse_mode='HTML')
             Logger.exception(ex)
+            await context.bot.send_message(chat_id=msg.chat.id, text=str(ex), parse_mode='HTML')
 
     async def gdo_send_to_channel(self, message: Message):
         channel = message._env_channel
@@ -73,11 +72,9 @@ class Telegram(Connector):
             Logger.exception(ex)
 
     async def gdo_send_to_user(self, message: Message):
-        text = GDT_Page.instance()._top_bar.render()
-        text += "\n"
-        text += message._result
+        text = message._result
         user = message._env_user
-        Logger.debug(f"{user.render_name()} >> {text}")
+        Logger.debug(f"{user.render_name()} << {text}")
         try:
             await self._application.bot.send_message(chat_id=int(user.get_name()), parse_mode='HTML', text=text.strip())
         except Exception as ex:
