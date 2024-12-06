@@ -1,5 +1,7 @@
+import nest_asyncio
 import tomlkit
 
+from gdo.base.Application import Application
 from gdo.base.GDO_Module import GDO_Module
 from gdo.base.GDT import GDT
 from gdo.core.Connector import Connector
@@ -46,6 +48,10 @@ class module_telegram(GDO_Module):
         return self.get_config_val('telegram_api_key')
 
     def gdo_init(self):
+        try:
+            nest_asyncio.apply()
+        except RuntimeError:
+            pass
         Connector.register(Telegram, True)
 
     def gdo_install(self):

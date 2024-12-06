@@ -13,13 +13,6 @@ from gdo.core.GDO_Session import GDO_Session
 from gdo.core.GDO_User import GDO_User
 from gdo.telegram.connector.TelegramThread import TelegramThread
 
-import nest_asyncio
-
-from gdo.ui.GDT_Page import GDT_Page
-
-nest_asyncio.apply()
-
-
 class Telegram(Connector):
     _application: object
     _thread: TelegramThread
@@ -43,7 +36,6 @@ class Telegram(Connector):
         msg = update.edited_message or update.message
         try:
             Application.tick()
-            Application.fresh_page()
             Application.mode(Mode.TELEGRAM)
             chat = msg.chat
             self.get_or_create_dog(chat._bot)
