@@ -47,7 +47,7 @@ class Telegram(Connector):
             message.env_server(self._server)
             message.env_user(user)
             message.env_session(GDO_Session.for_user(user))
-            if chat.type == ChatType.CHANNEL:
+            if chat.type in (ChatType.CHANNEL, ChatType.SUPERGROUP) :
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
             asyncio.ensure_future(message.execute())
