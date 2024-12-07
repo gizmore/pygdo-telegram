@@ -36,7 +36,6 @@ class Telegram(Connector):
         msg = update.edited_message or update.message
         try:
             Application.tick()
-            Application.mode(Mode.TELEGRAM)
             chat = msg.chat
             self.get_or_create_dog(chat._bot)
             text = msg.text.replace('—', '--')
@@ -60,6 +59,8 @@ class Telegram(Connector):
         text = message._result
         Logger.debug(f"{channel.render_name()} >> {text}")
         try:
+            prefix = f'{message._env_user.render_name()}: ' if not message._thread_user else ''
+            text = f"{prefix}{text}"
             await self._application.bot.send_message(chat_id=int(channel.get_name()), parse_mode='HTML', text=text)
         except Exception as ex:
             Logger.exception(ex)
