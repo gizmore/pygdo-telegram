@@ -49,7 +49,7 @@ class Telegram(Connector):
             message.env_server(self._server)
             message.env_user(user)
             message.env_session(GDO_Session.for_user(user))
-            if chat.type in (ChatType.CHANNEL, ChatType.SUPERGROUP) :
+            if chat.type in (ChatType.CHANNEL, ChatType.SUPERGROUP, ChatType.GROUP) :
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
             asyncio.ensure_future(message.execute())
@@ -58,7 +58,7 @@ class Telegram(Connector):
             await context.bot.send_message(chat_id=msg.chat.id, text=str(ex), parse_mode='HTML')
 
     async def gdo_send_to_channel(self, message: Message):
-        text = message
+        text = message._result
         channel = message._env_channel
         Logger.debug(f"{channel.render_name()} << {text}")
         prefix = f'{message._env_user.render_name()}: ' if not message._thread_user else ''
