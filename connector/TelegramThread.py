@@ -10,7 +10,4 @@ class TelegramThread(Thread):
         self._connector = connector
 
     async def run(self):
-        try:
-            await self._connector._application.run_polling()
-        except RuntimeError:
-            raise KeyboardInterrupt
+        await self._connector._application.run_polling()

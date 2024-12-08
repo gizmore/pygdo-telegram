@@ -8,9 +8,12 @@ from gdo.base.Application import Application
 from gdo.base.Logger import Logger
 from gdo.base.Message import Message
 from gdo.base.Render import Mode
+from gdo.base.Util import Strings
 from gdo.core.Connector import Connector
+from gdo.core.GDO_Permission import GDO_Permission
 from gdo.core.GDO_Session import GDO_Session
 from gdo.core.GDO_User import GDO_User
+from gdo.core.GDO_UserPermission import GDO_UserPermission
 from gdo.telegram.connector.TelegramThread import TelegramThread
 
 class Telegram(Connector):
@@ -55,29 +58,30 @@ class Telegram(Connector):
             await context.bot.send_message(chat_id=msg.chat.id, text=str(ex), parse_mode='HTML')
 
     async def gdo_send_to_channel(self, message: Message):
+        text = message
         channel = message._env_channel
-        text = message._result[:4096]
         Logger.debug(f"{channel.render_name()} << {text}")
-        try:
-            prefix = f'{message._env_user.render_name()}: ' if not message._thread_user else ''
-            text = f"{prefix}{text}"
-            await self._application.bot.send_message(chat_id=int(channel.get_name()), parse_mode='HTML', text=text)
-        except Exception as ex:
-            Logger.exception(ex)
+        prefix = f'{message._env_user.render_name()}: ' if not message._thread_user else ''
+        text = f"{prefix}{text}"
+        await self.send_to_chat(channel.get_name(), text)
 
     async def gdo_send_to_user(self, message: Message):
-        text = message._result[:4096]
+        text = message._result
         user = message._env_user
         Logger.debug(f"{user.render_name()} << {text}")
-        try:
-            await self._application.bot.send_message(chat_id=int(user.get_name()), parse_mode='HTML', text=text)
-        except Exception as ex:
-            Logger.exception(ex)
+        await self.send_to_chat(user.get_name(), text)
+
+    async def send_to_chat(self, chat_id: str, text: str):
+        chunks = Strings.split_boundary(text, 4096)
+        for chunk in chunks:
+            await self._application.bot.send_message(chat_id=int(chat_id), parse_mode='HTML', text=chunk)
 
     def get_or_create_dog(self, bot):
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
         user = self._server.get_or_create_user(str(bot.id), bot.username)
+        GDO_UserPermission.grant(user, GDO_Permission.ADMIN)
+        GDO_UserPermission.grant(user, GDO_Permission.STAFF)
         mod.save_config_val('telegram_bot', user.get_id())
         return user
 
