@@ -56,8 +56,8 @@ class Telegram(Connector):
 
     async def gdo_send_to_channel(self, message: Message):
         channel = message._env_channel
-        text = message._result
-        Logger.debug(f"{channel.render_name()} >> {text}")
+        text = message._result[:4096]
+        Logger.debug(f"{channel.render_name()} << {text}")
         try:
             prefix = f'{message._env_user.render_name()}: ' if not message._thread_user else ''
             text = f"{prefix}{text}"
@@ -66,11 +66,11 @@ class Telegram(Connector):
             Logger.exception(ex)
 
     async def gdo_send_to_user(self, message: Message):
-        text = message._result
+        text = message._result[:4096]
         user = message._env_user
         Logger.debug(f"{user.render_name()} << {text}")
         try:
-            await self._application.bot.send_message(chat_id=int(user.get_name()), parse_mode='HTML', text=text.strip())
+            await self._application.bot.send_message(chat_id=int(user.get_name()), parse_mode='HTML', text=text)
         except Exception as ex:
             Logger.exception(ex)
 
