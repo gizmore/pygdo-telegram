@@ -14,6 +14,7 @@ from gdo.core.GDO_Permission import GDO_Permission
 from gdo.core.GDO_Session import GDO_Session
 from gdo.core.GDO_User import GDO_User
 from gdo.core.GDO_UserPermission import GDO_UserPermission
+from gdo.core.GDT_UserType import GDT_UserType
 from gdo.telegram.connector.TelegramThread import TelegramThread
 
 class Telegram(Connector):
@@ -83,6 +84,7 @@ class Telegram(Connector):
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
         user = self._server.get_or_create_user(str(bot.id), bot.username)
+        user.save_val('user_type', GDT_UserType.CHAPPY)
         GDO_UserPermission.grant(user, GDO_Permission.ADMIN)
         GDO_UserPermission.grant(user, GDO_Permission.STAFF)
         mod.save_config_val('telegram_bot', user.get_id())
