@@ -1,4 +1,3 @@
-from gdo.base.Logger import Logger
 from gdo.base.Thread import Thread
 
 
@@ -10,4 +9,4 @@ class TelegramThread(Thread):
         self._connector = connector
 
     async def run(self):
-        await self._connector._application.run_polling()
+        self._connector._application.run_polling(close_loop=False)
