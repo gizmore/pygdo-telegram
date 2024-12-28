@@ -25,7 +25,7 @@ class Telegram(Connector):
     def get_render_mode(self) -> Mode:
         return Mode.TELEGRAM
 
-    def gdo_connect(self) -> None:
+    def gdo_connect(self) -> bool:
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
         token = mod.cfg_api_key()
@@ -36,6 +36,7 @@ class Telegram(Connector):
         self._thread = TelegramThread(self)
         asyncio.run(self._thread.run())
         self._connected = True
+        return True
 
     async def handle_telegram_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = update.edited_message or update.message

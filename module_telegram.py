@@ -51,11 +51,11 @@ class module_telegram(GDO_Module):
 
     def gdo_init(self):
         Connector.register(Telegram, True)
-        if not Application.IS_HTTP:
-            nest_asyncio.apply()
+        # if not Application.IS_HTTP:
+        nest_asyncio.apply()
 
     def gdo_install(self):
-        if not GDO_Server.get_by_connector('Telegram'):
+        if not GDO_Server.get_by_connector('telegram'):
             GDO_Server.blank({
                 'serv_name': 'Telegram',
                 'serv_username': self.cfg_bot_user_name(),
