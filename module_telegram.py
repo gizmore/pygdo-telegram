@@ -49,8 +49,10 @@ class module_telegram(GDO_Module):
     def cfg_api_key(self) -> str:
         return self.get_config_val('telegram_api_key')
 
-    async def gdo_init(self):
+    def gdo_init(self):
         Connector.register(Telegram, True)
+        if not Application.IS_HTTP:
+            nest_asyncio.apply()
 
     def gdo_install(self):
         if not GDO_Server.get_by_connector('Telegram'):
