@@ -46,11 +46,11 @@ class Telegram(Connector):
         try:
             Application.tick()
             chat = msg.chat
-            await self.get_or_create_dog(chat._bot)
+            self.get_or_create_dog(chat._bot)
             text = msg.text.replace('—', '--')
             usr = msg.from_user
             Logger.debug(f"Telegram: {usr.username} >> {text}")
-            user = await self._server.get_or_create_user(str(usr.id), usr.username)
+            user = self._server.get_or_create_user(str(usr.id), usr.username)
             message = Message(text, Mode.TELEGRAM)
             message.env_server(self._server)
             message.env_user(user)
@@ -69,13 +69,13 @@ class Telegram(Connector):
         Logger.debug(f"{channel.render_name()} << {text}")
         # prefix = f'{message._env_user.render_name()}: ' if not message._thread_user else ''
         # text = f"{prefix}{text}"
-        await self.send_to_chat(channel.get_name(), text, message._reply_to)
+        await self.send_to_chat(channel.get_name(), text, message._env_reply_to)
 
     async def gdo_send_to_user(self, message: Message):
         text = message._result
         user = message._env_user
         Logger.debug(f"{user.render_name()} << {text}")
-        await self.send_to_chat(user.get_name(), text, message._reply_to)
+        await self.send_to_chat(user.get_name(), text, message._env_reply_to)
 
     async def send_to_chat(self, chat_id: str, text: str, reply_to: str):
         lrt = 0 if reply_to is None else len(reply_to) + 2
@@ -85,10 +85,10 @@ class Telegram(Connector):
                 chunk = f"{reply_to}: {chunk}"
             await self._application.bot.send_message(chat_id=int(chat_id), parse_mode='HTML', text=chunk)
 
-    async def get_or_create_dog(self, bot) -> GDO_User:
+    def get_or_create_dog(self, bot) -> GDO_User:
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
-        user = await self._server.get_or_create_user(str(bot.id), bot.username)
+        user = self._server.get_or_create_user(str(bot.id), bot.username)
         user.save_val('user_type', GDT_UserType.CHAPPY)
         GDO_UserPermission.grant(user, GDO_Permission.ADMIN)
         GDO_UserPermission.grant(user, GDO_Permission.STAFF)
