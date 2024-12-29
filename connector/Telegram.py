@@ -60,6 +60,7 @@ class Telegram(Connector):
                 message.env_channel(channel)
                 channel.on_user_joined(user)
             asyncio.ensure_future(message.execute())
+
         except Exception as ex:
             Logger.exception(ex)
             await context.bot.send_message(chat_id=msg.chat.id, text=str(ex), parse_mode='HTML')
