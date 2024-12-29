@@ -51,8 +51,6 @@ class module_telegram(GDO_Module):
 
     def gdo_init(self):
         Connector.register(Telegram, True)
-        if not Application.IS_HTTP:
-            nest_asyncio.apply()
 
     def gdo_install(self):
         if not GDO_Server.get_by_connector('telegram'):
