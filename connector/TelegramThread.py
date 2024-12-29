@@ -1,10 +1,12 @@
-from gdo.base.Thread import Thread
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from gdo.telegram.connector.Telegram import  Telegram
 
-class TelegramThread(Thread):
-    _connector: object
+class TelegramThread:
+    _connector: 'Telegram'
 
-    def __init__(self, connector: object):
+    def __init__(self, connector: 'Telegram'):
         super().__init__()
         self._connector = connector
 

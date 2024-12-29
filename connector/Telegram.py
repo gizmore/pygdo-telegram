@@ -58,6 +58,7 @@ class Telegram(Connector):
             if chat.type in (ChatType.CHANNEL, ChatType.SUPERGROUP, ChatType.GROUP) :
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
+                channel.on_user_joined(user)
             asyncio.ensure_future(message.execute())
         except Exception as ex:
             Logger.exception(ex)
