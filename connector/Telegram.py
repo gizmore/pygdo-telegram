@@ -25,6 +25,9 @@ class Telegram(Connector):
     def get_render_mode(self) -> Mode:
         return Mode.TELEGRAM
 
+    def gdo_needs_authentication(self) -> bool:
+        return False
+
     def gdo_connect(self) -> bool:
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
