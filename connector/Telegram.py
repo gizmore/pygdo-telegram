@@ -56,8 +56,7 @@ class Telegram(Connector):
             user = self._server.get_or_create_user(str(usr.id), usr.username)
             message = Message(text, Mode.TELEGRAM)
             message.env_server(self._server)
-            message.env_user(user)
-            message.env_session(GDO_Session.for_user(user))
+            message.env_user(user, True)
             if chat.type in (ChatType.CHANNEL, ChatType.SUPERGROUP, ChatType.GROUP) :
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
