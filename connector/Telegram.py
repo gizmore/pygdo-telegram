@@ -75,7 +75,7 @@ class Telegram(Connector):
         # text = f"{prefix}{text}"
         await self.send_to_chat(channel.get_name(), text, message._env_reply_to)
 
-    async def gdo_send_to_user(self, message: Message):
+    async def gdo_send_to_user(self, message: Message, notice: bool=False):
         text = message._result
         user = message._env_user
         Logger.debug(f"{user.render_name()} << {text}")
