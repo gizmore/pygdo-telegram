@@ -25,9 +25,9 @@ class module_telegram(GDO_Module):
             path = self.file_path('secret.toml')
             with open(path, 'r') as file:
                 toml = tomlkit.load(file)
-                bot_name = toml['bot_name']
-                username = toml['bot_user']
-                apikey = toml['api_key']
+                bot_name = str(toml['bot_name'])
+                username = str(toml['bot_user'])
+                apikey = str(toml['api_key'])
         except FileNotFoundError:
             pass
         return [
