@@ -48,6 +48,7 @@ class Telegram(Connector):
             return
         try:
             Application.tick()
+            Application.mode(Mode.TELEGRAM)
             chat = msg.chat
             self.get_or_create_dog(chat._bot)
             text = msg.text.replace('—', '--')
