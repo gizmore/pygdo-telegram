@@ -88,7 +88,7 @@ class Telegram(Connector):
         for chunk in chunks:
             if reply_to:
                 chunk = f"{reply_to}: {chunk}"
-            await self._application.bot.send_message(chat_id=int(chat_id), parse_mode=ParseMode.MARKDOWN_V2, text=chunk)
+            await self._application.bot.send_message(chat_id=int(chat_id), parse_mode=ParseMode.HTML, text=chunk)
 
     def get_or_create_dog(self, bot) -> GDO_User:
         from gdo.telegram.module_telegram import module_telegram
