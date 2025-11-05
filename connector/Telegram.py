@@ -37,7 +37,7 @@ class Telegram(Connector):
         handler = MessageHandler(None, self.handle_telegram_message)
         self._application.add_handler(handler)
         self._thread = TelegramThread(self)
-        asyncio.run(self._thread.run())
+        asyncio.run_coroutine_threadsafe(self._thread.run(), loop=Application.LOOP)
         self._connected = True
         return True
 
