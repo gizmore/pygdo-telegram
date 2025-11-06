@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from gdo.base.Application import Application
+
 if TYPE_CHECKING:
     from gdo.telegram.connector.Telegram import  Telegram
 
@@ -10,5 +12,8 @@ class TelegramThread:
         super().__init__()
         self._connector = connector
 
-    def run(self):
-        self._connector._application.run_polling(close_loop=False)
+    async def run(self):
+        app = self._connector._application
+        await app.initialize()
+        while Application.RUNNING:
+            app.run_polling()

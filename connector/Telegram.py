@@ -28,7 +28,7 @@ class Telegram(Connector):
     def gdo_needs_authentication(self) -> bool:
         return False
 
-    def gdo_connect(self) -> bool:
+    async def gdo_connect(self) -> bool:
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
         token = mod.cfg_api_key()
@@ -37,8 +37,9 @@ class Telegram(Connector):
         handler = MessageHandler(None, self.handle_telegram_message)
         self._application.add_handler(handler)
         self._thread = TelegramThread(self)
-        asyncio.run_coroutine_threadsafe(self._thread.run(), loop=Application.LOOP)
         self._connected = True
+        task = asyncio.create_task(self._thread.run(), name=self._server.get_name()+"_TELEGRAM")
+        Application.TASKS[self._server.get_name()+"_TELEGRAM"] = task
         return True
 
     async def handle_telegram_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
