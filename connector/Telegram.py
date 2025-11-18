@@ -23,7 +23,7 @@ class Telegram(Connector):
     _thread: TelegramThread
 
     def get_render_mode(self) -> Mode:
-        return Mode.TELEGRAM
+        return Mode.telegram
 
     def gdo_needs_authentication(self) -> bool:
         return False
@@ -49,14 +49,14 @@ class Telegram(Connector):
             return
         try:
             Application.tick()
-            Application.mode(Mode.TELEGRAM)
+            Application.mode(Mode.telegram)
             chat = msg.chat
             self.get_or_create_dog(chat._bot)
             text = msg.text.replace('—', '--')
             usr = msg.from_user
             Logger.debug(f"Telegram: {usr.username} >> {text}")
             user = self._server.get_or_create_user(str(usr.id), usr.username)
-            message = Message(text, Mode.TELEGRAM)
+            message = Message(text, Mode.telegram)
             message.env_server(self._server)
             message.env_user(user, True)
             if chat.type in (ChatType.CHANNEL, ChatType.SUPERGROUP, ChatType.GROUP) :
