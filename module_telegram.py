@@ -52,7 +52,7 @@ class module_telegram(GDO_Module):
     def gdo_init(self):
         Connector.register(Telegram, True)
 
-    def gdo_install(self):
+    async def gdo_install(self):
         if not GDO_Server.get_by_connector('telegram'):
             GDO_Server.blank({
                 'serv_name': 'Telegram',
