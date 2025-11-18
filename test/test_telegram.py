@@ -27,7 +27,7 @@ class TelegramTestCase(unittest.TestCase):
         self.assertIn('telegram', Connector.AVAILABLE.keys(), "Connector was not added.")
 
     def test_02_render_telegram(self):
-        out = text_plug(Mode.telegram, '$help')
+        out = text_plug(Mode.render_telegram, '$help')
         self.assertIn('Core', out, 'Telegram does not render help nicely.')
         self.assertNotIn('[0m', out, 'Telegram does render as CLI.')
 
