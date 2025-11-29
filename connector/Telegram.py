@@ -38,7 +38,7 @@ class Telegram(Connector):
         self._application.add_handler(handler)
         self._thread = TelegramThread(self)
         self._connected = True
-        task = asyncio.create_task(self._thread.run(), name=self._server.get_name()+"_TELEGRAM")
+        asyncio.run(self._thread.run())
         Application.TASKS[self._server.get_name()+"_TELEGRAM"] = task
         return True
 
