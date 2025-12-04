@@ -15,5 +15,5 @@ class TelegramThread:
     async def run(self):
         app = self._connector._application
         await app.initialize()
-        while Application.RUNNING:
-            app.run_polling()
+        await app.start()
+        await app.updater.start_polling()

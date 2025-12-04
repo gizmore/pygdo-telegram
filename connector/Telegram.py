@@ -38,7 +38,7 @@ class Telegram(Connector):
         self._application.add_handler(handler)
         self._thread = TelegramThread(self)
         self._connected = True
-        asyncio.run(self._thread.run())
+        task = asyncio.create_task(self._thread.run())
         Application.TASKS[self._server.get_name()+"_TELEGRAM"] = task
         return True
 
@@ -63,7 +63,7 @@ class Telegram(Connector):
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
                 channel.on_user_joined(user)
-            asyncio.ensure_future(message.execute())
+            await message.execute()
 
         except Exception as ex:
             Logger.exception(ex)
@@ -96,8 +96,8 @@ class Telegram(Connector):
         mod = module_telegram.instance()
         user = await self._server.get_or_create_user(str(bot.id), bot.username)
         user.save_val('user_type', GDT_UserType.CHAPPY)
-        GDO_UserPermission.grant(user, GDO_Permission.ADMIN)
-        GDO_UserPermission.grant(user, GDO_Permission.STAFF)
+        await GDO_UserPermission.grant(user, GDO_Permission.ADMIN)
+        await GDO_UserPermission.grant(user, GDO_Permission.STAFF)
         mod.save_config_val('telegram_bot', user.get_id())
         return user
 
