@@ -38,8 +38,8 @@ class Telegram(Connector):
         self._application.add_handler(handler)
         self._thread = TelegramThread(self)
         self._connected = True
-        task = asyncio.create_task(self._thread.run())
-        Application.TASKS[self._server.get_name()+"_TELEGRAM"] = task
+        task = asyncio.create_task(self._thread.run(), name="Telegram")
+        Application.TASKS.append(task)
         return True
 
     async def handle_telegram_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
