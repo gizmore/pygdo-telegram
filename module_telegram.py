@@ -54,4 +54,6 @@ class module_telegram(GDO_Module):
                 'serv_name': 'Telegram',
                 'serv_username': self.cfg_bot_user_name(),
                 'serv_connector': 'telegram',
+                'serv_trigger': '.',
             }).insert()
+
