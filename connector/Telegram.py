@@ -9,7 +9,7 @@ from gdo.base.Application import Application
 from gdo.base.Logger import Logger
 from gdo.base.Message import Message
 from gdo.base.Render import Mode
-from gdo.base.Util import Strings, html
+from gdo.base.Util import Strings, html, module_config_value
 from gdo.core.Connector import Connector
 from gdo.core.GDO_Permission import GDO_Permission
 from gdo.core.GDO_Session import GDO_Session
@@ -21,6 +21,10 @@ from gdo.telegram.connector.TelegramThread import TelegramThread
 class Telegram(Connector):
     _application: TelegramApp
     _thread: TelegramThread
+
+    def render_user_connect_help(self) -> str:
+        dog = module_config_value('telegram', 'telegram_user_name')
+        return f'<a href="https://t.me/{dog}">t.me/{dog}</a>'
 
     def get_render_mode(self) -> Mode:
         return Mode.render_telegram
