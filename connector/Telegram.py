@@ -1,9 +1,9 @@
 import asyncio
 
-from telegram import Update
-from telegram.constants import ChatType, ParseMode
+from telegram._update import Update
+from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes
-from telegram.ext import Application as TelegramApp
+from telegram.ext.filters import ChatType
 
 from gdo.base.Application import Application
 from gdo.base.Logger import Logger
@@ -12,14 +12,13 @@ from gdo.base.Render import Mode
 from gdo.base.Util import Strings, html, module_config_value
 from gdo.core.Connector import Connector
 from gdo.core.GDO_Permission import GDO_Permission
-from gdo.core.GDO_Session import GDO_Session
 from gdo.core.GDO_User import GDO_User
 from gdo.core.GDO_UserPermission import GDO_UserPermission
 from gdo.core.GDT_UserType import GDT_UserType
 from gdo.telegram.connector.TelegramThread import TelegramThread
 
 class Telegram(Connector):
-    _application: TelegramApp
+    _application: any
     _thread: TelegramThread
 
     def render_user_connect_help(self) -> str:
