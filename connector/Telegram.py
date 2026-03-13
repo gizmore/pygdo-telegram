@@ -59,6 +59,7 @@ class Telegram(Connector):
             usr = msg.from_user
             Logger.debug(f"Telegram: {usr.username} >> {text}")
             user = await self._server.get_or_create_user(str(usr.id), usr.username)
+            Application.set_current_user(user)
             message = Message(text, Mode.render_telegram)
             message.env_server(self._server)
             message.env_user(user, True)
