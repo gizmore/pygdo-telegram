@@ -34,6 +34,10 @@ class Telegram(Connector):
     def is_channel_chat(chat_type: str) -> bool:
         return chat_type in (ChatType.CHANNEL, ChatType.SUPERGROUP, ChatType.GROUP)
 
+    @staticmethod
+    def text_or_none(text: str | None) -> str | None:
+        return text.replace('—', '--') if text is not None else None
+
     async def gdo_connect(self) -> bool:
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
@@ -58,7 +62,9 @@ class Telegram(Connector):
             Application.mode(Mode.render_telegram)
             chat = msg.chat
             await self.get_or_create_dog(chat._bot)
-            text = msg.text.replace('—', '--')
+            text = self.text_or_none(msg.text)
+            if text is None:
+                return
             usr = msg.from_user
             Logger.debug(f"Telegram: {usr.username} >> {text}")
             user = await self._server.get_or_create_user(str(usr.id), usr.username)

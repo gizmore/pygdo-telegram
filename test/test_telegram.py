@@ -56,7 +56,11 @@ class TelegramTestCase(unittest.TestCase):
         self.assertTrue(Telegram.is_channel_chat('channel'))
         self.assertFalse(Telegram.is_channel_chat('private'))
 
-    def test_05_channel_creation(self):
+    def test_05_non_text_messages_are_ignored(self):
+        self.assertIsNone(Telegram.text_or_none(None))
+        self.assertEqual('a--b', Telegram.text_or_none('a—b'))
+
+    def test_06_channel_creation(self):
         server = GDO_Server.get_by_connector('Telegram')
         channel1 = server.get_or_create_channel(str(-4139465915), 'WeChall')
         channel2 = server.get_or_create_channel(str(-4139465915), 'WeChall')
