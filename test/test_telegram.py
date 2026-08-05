@@ -50,7 +50,13 @@ class TelegramTestCase(unittest.TestCase):
         self.assertEqual('<b>Core</b>', connector._application.bot.sent[0]['text'])
         self.assertEqual('HTML', connector._application.bot.sent[0]['parse_mode'])
 
-    def test_04_channel_creation(self):
+    def test_04_group_messages_create_channels(self):
+        self.assertTrue(Telegram.is_channel_chat('group'))
+        self.assertTrue(Telegram.is_channel_chat('supergroup'))
+        self.assertTrue(Telegram.is_channel_chat('channel'))
+        self.assertFalse(Telegram.is_channel_chat('private'))
+
+    def test_05_channel_creation(self):
         server = GDO_Server.get_by_connector('Telegram')
         channel1 = server.get_or_create_channel(str(-4139465915), 'WeChall')
         channel2 = server.get_or_create_channel(str(-4139465915), 'WeChall')

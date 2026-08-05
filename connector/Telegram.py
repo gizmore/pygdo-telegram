@@ -1,9 +1,8 @@
 import asyncio
 
 from telegram._update import Update
-from telegram.constants import ParseMode
+from telegram.constants import ChatType, ParseMode
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes
-from telegram.ext.filters import ChatType
 
 from gdo.base.Application import Application
 from gdo.base.Logger import Logger
@@ -30,6 +29,10 @@ class Telegram(Connector):
 
     def gdo_needs_authentication(self) -> bool:
         return False
+
+    @staticmethod
+    def is_channel_chat(chat_type: str) -> bool:
+        return chat_type in (ChatType.CHANNEL, ChatType.SUPERGROUP, ChatType.GROUP)
 
     async def gdo_connect(self) -> bool:
         from gdo.telegram.module_telegram import module_telegram
@@ -63,7 +66,7 @@ class Telegram(Connector):
             message = Message(text, Mode.render_telegram)
             message.env_server(self._server)
             message.env_user(user, True)
-            if chat.type in (ChatType.CHANNEL, ChatType.SUPERGROUP, ChatType.GROUP) :
+            if self.is_channel_chat(chat.type):
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
                 await channel.on_user_joined(user)
