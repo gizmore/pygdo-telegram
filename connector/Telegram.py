@@ -9,7 +9,7 @@ from gdo.base.Application import Application
 from gdo.base.Logger import Logger
 from gdo.base.Message import Message
 from gdo.base.Render import Mode
-from gdo.base.Util import Strings, html, module_config_value
+from gdo.base.Util import Strings, module_config_value
 from gdo.core.Connector import Connector
 from gdo.core.GDO_Permission import GDO_Permission
 from gdo.core.GDO_User import GDO_User
@@ -89,7 +89,7 @@ class Telegram(Connector):
 
     async def send_to_chat(self, chat_id: str, text: str, reply_to: str):
         lrt = 0 if reply_to is None else len(reply_to) + 2
-        chunks = Strings.split_boundary(html(text), 4096 - lrt)
+        chunks = Strings.split_boundary(text, 4096 - lrt)
         for chunk in chunks:
             if reply_to:
                 chunk = f"{reply_to}: {chunk}"

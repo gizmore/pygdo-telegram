@@ -1,3 +1,4 @@
+import asyncio
 import os
 import unittest
 
@@ -7,6 +8,7 @@ from gdo.base.Render import Render, Mode
 from gdo.core.Connector import Connector
 from gdo.core.GDO_Server import GDO_Server
 from gdo.core.method.launch import launch
+from gdo.telegram.connector.Telegram import Telegram
 from gdotest.TestUtil import reinstall_module, text_plug
 
 
@@ -30,8 +32,25 @@ class TelegramTestCase(unittest.TestCase):
         out = text_plug(Mode.render_telegram, '$help')
         self.assertIn('Core', out, 'Telegram does not render help nicely.')
         self.assertNotIn('[0m', out, 'Telegram does render as CLI.')
+        self.assertIn('<b>Core</b>', out, 'Telegram help must preserve HTML formatting.')
 
-    def test_03_channel_creation(self):
+    def test_03_send_preserves_html(self):
+        class Bot:
+            sent = []
+
+            async def send_message(self, **kwargs):
+                self.sent.append(kwargs)
+
+        class TelegramApplication:
+            bot = Bot()
+
+        connector = Telegram()
+        connector._application = TelegramApplication()
+        asyncio.run(connector.send_to_chat('123', '<b>Core</b>', None))
+        self.assertEqual('<b>Core</b>', connector._application.bot.sent[0]['text'])
+        self.assertEqual('HTML', connector._application.bot.sent[0]['parse_mode'])
+
+    def test_04_channel_creation(self):
         server = GDO_Server.get_by_connector('Telegram')
         channel1 = server.get_or_create_channel(str(-4139465915), 'WeChall')
         channel2 = server.get_or_create_channel(str(-4139465915), 'WeChall')
