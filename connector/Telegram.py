@@ -42,7 +42,7 @@ class Telegram(Connector):
         from gdo.telegram.module_telegram import module_telegram
         mod = module_telegram.instance()
         token = mod.cfg_api_key()
-        Logger.debug(f'Connecting to telegram with token {token}')
+        Logger.debug('Connecting to Telegram.')
         self._application = ApplicationBuilder().token(token).build()
         handler = MessageHandler(None, self.handle_telegram_message)
         self._application.add_handler(handler)
