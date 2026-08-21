@@ -1,4 +1,6 @@
 import asyncio
+from pathlib import Path
+import time
 
 from telegram._update import Update
 from telegram.constants import ChatType, ParseMode
@@ -14,6 +16,7 @@ from gdo.core.GDO_Permission import GDO_Permission
 from gdo.core.GDO_User import GDO_User
 from gdo.core.GDO_UserPermission import GDO_UserPermission
 from gdo.core.GDT_UserType import GDT_UserType
+from gdo.core.GDO_File import GDO_File
 from gdo.telegram.connector.TelegramThread import TelegramThread
 
 class Telegram(Connector):
@@ -37,6 +40,43 @@ class Telegram(Connector):
     @staticmethod
     def text_or_none(text: str | None) -> str | None:
         return text.replace('—', '--') if text is not None else None
+
+    @staticmethod
+    def image_attachment(msg):
+        """Return Telegram image metadata for a photo or image document."""
+        if msg.photo:
+            photo = msg.photo[-1]
+            return photo.file_id, photo.file_unique_id, f'telegram-{photo.file_unique_id}.jpg', photo.file_size or 0
+        document = msg.document
+        if document and (document.mime_type or '').startswith('image/'):
+            name = document.file_name or f'telegram-{document.file_unique_id}.image'
+            return document.file_id, document.file_unique_id, name, document.file_size or 0
+        return None
+
+    async def store_image(self, attachment, context: ContextTypes.DEFAULT_TYPE) -> GDO_File:
+        from gdo.telegram.module_telegram import module_telegram
+
+        file_id, unique_id, filename, size = attachment
+        if size > module_telegram.instance().cfg_image_max_bytes():
+            raise ValueError('Telegram image exceeds the configured size limit.')
+        directory = Path(Application.temp_path('telegram/images'))
+        directory.mkdir(parents=True, exist_ok=True)
+        target = directory / f'{time.time_ns()}-{unique_id}'
+        remote = await context.bot.get_file(file_id)
+        await remote.download_to_drive(custom_path=str(target))
+        file = GDO_File.from_path(str(target), delete=True)
+        file.set_val('file_name', filename)
+        return file.insert()
+
+    @staticmethod
+    def image_notice(file: GDO_File, caption: str | None) -> str:
+        prefix = caption.strip() + '\n' if caption else ''
+        # IBDES is consumed locally by Mira.  Give that consumer an explicit
+        # local-media link, rather than a Telegram API URL containing the bot
+        # credential or a public download URL.  The file record remains useful
+        # for ordinary PyGDO tooling, while file:// lets the receiver inspect
+        # exactly this downloaded image.
+        return f'{prefix}[Telegram image received: file://{file.get_path()} ({file.get_name()}, file #{file.get_id()})]'
 
     async def gdo_connect(self) -> bool:
         from gdo.telegram.module_telegram import module_telegram
@@ -62,13 +102,18 @@ class Telegram(Connector):
             Application.mode(Mode.render_telegram)
             chat = msg.chat
             await self.get_or_create_dog(chat._bot)
-            text = self.text_or_none(msg.text)
-            if text is None:
-                return
             usr = msg.from_user
-            Logger.debug(f"Telegram: {usr.username} >> {text}")
             user = await self._server.get_or_create_user(str(usr.id), usr.username)
             Application.set_current_user(user)
+            attachment = self.image_attachment(msg)
+            if attachment:
+                file = await self.store_image(attachment, context)
+                text = self.image_notice(file, self.text_or_none(msg.caption))
+            else:
+                text = self.text_or_none(msg.text)
+            if text is None:
+                return
+            Logger.debug(f"Telegram: {usr.username} >> {text}")
             message = Message(text, Mode.render_telegram)
             message.env_server(self._server)
             message.env_user(user, True)
@@ -103,6 +148,13 @@ class Telegram(Connector):
             if reply_to:
                 chunk = f"{reply_to}: {chunk}"
             await self._application.bot.send_message(chat_id=int(chat_id), parse_mode=ParseMode.HTML, text=chunk)
+
+    async def send_image_to_chat(self, chat_id: str, file: GDO_File, caption: str = ''):
+        if not file.is_image():
+            raise ValueError('Only image files can be sent through Telegram.')
+        with open(file.get_path(), 'rb') as handle:
+            await self._application.bot.send_photo(chat_id=int(chat_id), photo=handle,
+                                                   caption=caption or None, parse_mode=ParseMode.HTML)
 
     async def get_or_create_dog(self, bot) -> GDO_User:
         from gdo.telegram.module_telegram import module_telegram

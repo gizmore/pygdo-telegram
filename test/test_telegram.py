@@ -1,6 +1,8 @@
 import asyncio
 import os
+import tempfile
 import unittest
+from types import SimpleNamespace
 
 from gdo.base.Application import Application
 from gdo.base.ModuleLoader import ModuleLoader
@@ -59,6 +61,49 @@ class TelegramTestCase(unittest.TestCase):
     def test_05_non_text_messages_are_ignored(self):
         self.assertIsNone(Telegram.text_or_none(None))
         self.assertEqual('a--b', Telegram.text_or_none('a—b'))
+
+    def test_05a_image_attachment_detects_photos_and_image_documents(self):
+        photo = SimpleNamespace(file_id='photo-id', file_unique_id='photo-unique', file_size=123)
+        message = SimpleNamespace(photo=[photo], document=None)
+        self.assertEqual(('photo-id', 'photo-unique', 'telegram-photo-unique.jpg', 123),
+                         Telegram.image_attachment(message))
+        document = SimpleNamespace(file_id='doc-id', file_unique_id='doc-unique',
+                                   file_name='logo.png', file_size=456, mime_type='image/png')
+        message = SimpleNamespace(photo=[], document=document)
+        self.assertEqual(('doc-id', 'doc-unique', 'logo.png', 456), Telegram.image_attachment(message))
+
+    def test_05aa_image_notice_contains_local_ibdes_link(self):
+        file = SimpleNamespace(
+            get_path=lambda: '/tmp/telegram/image.jpg',
+            get_name=lambda: 'image.jpg',
+            get_id=lambda: 7,
+        )
+        self.assertEqual(
+            'caption\n[Telegram image received: file:///tmp/telegram/image.jpg (image.jpg, file #7)]',
+            Telegram.image_notice(file, 'caption'),
+        )
+
+    def test_05b_send_image_preserves_caption(self):
+        class Bot:
+            sent = []
+
+            async def send_photo(self, **kwargs):
+                self.sent.append(kwargs)
+
+        class TelegramApplication:
+            bot = Bot()
+
+        with tempfile.NamedTemporaryFile(suffix='.png') as handle:
+            handle.write(b'not-a-real-png')
+            handle.flush()
+            file = SimpleNamespace(is_image=lambda: True, get_path=lambda: handle.name)
+            connector = Telegram()
+            connector._application = TelegramApplication()
+            asyncio.run(connector.send_image_to_chat('123', file, '<b>caption</b>'))
+        sent = connector._application.bot.sent[0]
+        self.assertEqual(123, sent['chat_id'])
+        self.assertEqual('<b>caption</b>', sent['caption'])
+        self.assertEqual('HTML', sent['parse_mode'])
 
     def test_06_channel_creation(self):
         server = GDO_Server.get_by_connector('Telegram')
