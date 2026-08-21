@@ -7,6 +7,7 @@ from gdo.core.GDO_Server import GDO_Server
 from gdo.core.GDO_User import GDO_User
 from gdo.core.GDT_Name import GDT_Name
 from gdo.core.GDT_Secret import GDT_Secret
+from gdo.core.GDT_UInt import GDT_UInt
 from gdo.core.GDT_User import GDT_User
 from gdo.telegram.connector.Telegram import Telegram
 
@@ -31,6 +32,7 @@ class module_telegram(GDO_Module):
             GDT_Name('telegram_bot_name').initial(bot_name),
             GDT_Secret('telegram_user_name').initial(username),
             GDT_Secret('telegram_api_key').initial(apikey),
+            GDT_UInt('telegram_image_max_bytes').initial('10485760').min(1024).max(20 * 1024 * 1024),
         ]
 
     def cfg_bot(self) -> GDO_User:
@@ -45,6 +47,9 @@ class module_telegram(GDO_Module):
     def cfg_api_key(self) -> str:
         return self.get_config_val('telegram_api_key')
 
+    def cfg_image_max_bytes(self) -> int:
+        return self.get_config_value('telegram_image_max_bytes')
+
     def gdo_init(self):
         Connector.register(Telegram, True)
 
@@ -56,4 +61,3 @@ class module_telegram(GDO_Module):
                 'serv_connector': 'telegram',
                 'serv_trigger': '.',
             }).insert()
-

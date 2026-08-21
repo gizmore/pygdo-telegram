@@ -1,1 +1,3 @@
 module_telegram = "Telegram"
+err_telegram_image_type = "This file is not an image."
+msg_telegram_image_sent = "Sent image: %s"
