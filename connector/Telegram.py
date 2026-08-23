@@ -141,12 +141,12 @@ class Telegram(Connector):
         Logger.debug(f"{user.render_name()} << {text}")
         await self.send_to_chat(user.get_name(), text, message._env_reply_to)
 
-    async def send_to_chat(self, chat_id: str, text: str, reply_to: str):
-        lrt = 0 if reply_to is None else len(reply_to) + 2
+    async def send_to_chat(self, chat_id: str, text: str, reply_to: 'GDO_User'):
+        lrt = 0 if reply_to is None else len(reply_to.render_name()) + 2
         chunks = Strings.split_boundary(text, 4096 - lrt)
         for chunk in chunks:
             if reply_to:
-                chunk = f"{reply_to}: {chunk}"
+                chunk = f"{reply_to.render_name()}: {chunk}"
             await self._application.bot.send_message(chat_id=int(chat_id), parse_mode=ParseMode.HTML, text=chunk)
 
     async def send_image_to_chat(self, chat_id: str, file: GDO_File, caption: str = ''):
