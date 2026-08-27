@@ -42,6 +42,11 @@ class Telegram(Connector):
         return text.replace('—', '--') if text is not None else None
 
     @staticmethod
+    def user_displayname(user) -> str:
+        """Prefer Telegram's human-visible name over its stable numeric ID."""
+        return user.username or user.full_name or str(user.id)
+
+    @staticmethod
     def image_attachment(msg):
         """Return Telegram image metadata for a photo or image document."""
         if msg.photo:
@@ -103,7 +108,13 @@ class Telegram(Connector):
             chat = msg.chat
             await self.get_or_create_dog(chat._bot)
             usr = msg.from_user
-            user = await self._server.get_or_create_user(str(usr.id), usr.username)
+            displayname = self.user_displayname(usr)
+            user = await self._server.get_or_create_user(str(usr.id), displayname)
+            # Existing Telegram accounts used to fall back to their numeric
+            # ID when no @username was set. Refresh that visible name as soon
+            # as Telegram gives us the sender's normal display name.
+            if user.get_displayname() != displayname:
+                user.save_val('user_displayname', displayname)
             Application.set_current_user(user)
             attachment = self.image_attachment(msg)
             if attachment:

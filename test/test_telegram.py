@@ -62,6 +62,10 @@ class TelegramTestCase(unittest.TestCase):
         self.assertIsNone(Telegram.text_or_none(None))
         self.assertEqual('a--b', Telegram.text_or_none('a—b'))
 
+    def test_05_displayname_falls_back_to_telegram_name(self):
+        user = SimpleNamespace(id=6394471947, username=None, full_name='Daniel')
+        self.assertEqual('Daniel', Telegram.user_displayname(user))
+
     def test_05a_image_attachment_detects_photos_and_image_documents(self):
         photo = SimpleNamespace(file_id='photo-id', file_unique_id='photo-unique', file_size=123)
         message = SimpleNamespace(photo=[photo], document=None)
