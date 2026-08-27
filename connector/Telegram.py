@@ -163,7 +163,7 @@ class Telegram(Connector):
         user.save_val('user_type', GDT_UserType.CHAPPY)
         await GDO_UserPermission.grant(user, GDO_Permission.ADMIN)
         await GDO_UserPermission.grant(user, GDO_Permission.STAFF)
-        mod.save_config_val('telegram_bot', user.get_id())
+        await mod.save_config_val('telegram_bot', user.get_id())
         return user
 
     def gdo_get_dog_user(self) -> GDO_User:
