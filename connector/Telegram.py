@@ -128,9 +128,15 @@ class Telegram(Connector):
             message = Message(text, Mode.render_telegram)
             message.env_server(self._server)
             message.env_user(user, True)
+            channel = None
             if self.is_channel_chat(chat.type):
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
                 message.env_channel(channel)
+            # Telegram does not supply a full member snapshot to ordinary
+            # bots, but every received message is authoritative evidence that
+            # this user is presently reachable through this connector.
+            await self._server.on_user_joined(user, channel)
+            if channel:
                 await channel.on_user_joined(user)
             await message.execute()
 
