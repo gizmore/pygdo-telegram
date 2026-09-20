@@ -198,7 +198,10 @@ class Telegram(Connector):
         await self.send_to_chat(user.get_name(), text, message._env_reply_to)
 
     async def send_to_chat(self, chat_id: str, text: str, reply_to: 'GDO_User'):
-        reply_name = None if reply_to is None else reply_to.get_displayname()
+        # IPC and scheduled output originate from the internal System account.
+        # It is a routing identity, not a conversational participant, so do
+        # not expose its technical name as a Telegram reply prefix.
+        reply_name = None if reply_to is None or reply_to.is_system() else reply_to.get_displayname()
         lrt = 0 if reply_name is None else len(reply_name) + 2
         chunks = Strings.split_boundary(text, 4096 - lrt)
         for chunk in chunks:

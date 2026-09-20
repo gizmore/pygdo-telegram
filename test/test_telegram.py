@@ -54,6 +54,22 @@ class TelegramTestCase(unittest.TestCase):
         self.assertEqual('<b>Core</b>', connector._application.bot.sent[0]['text'])
         self.assertEqual('HTML', connector._application.bot.sent[0]['parse_mode'])
 
+    def test_03a_system_reply_has_no_visible_prefix(self):
+        class Bot:
+            sent = []
+
+            async def send_message(self, **kwargs):
+                self.sent.append(kwargs)
+
+        class TelegramApplication:
+            bot = Bot()
+
+        system = SimpleNamespace(is_system=lambda: True, get_displayname=lambda: 'System')
+        connector = Telegram()
+        connector._application = TelegramApplication()
+        asyncio.run(connector.send_to_chat('123', 'Scheduled notice', system))
+        self.assertEqual('Scheduled notice', connector._application.bot.sent[0]['text'])
+
     def test_04_group_messages_create_channels(self):
         self.assertTrue(Telegram.is_channel_chat('group'))
         self.assertTrue(Telegram.is_channel_chat('supergroup'))
