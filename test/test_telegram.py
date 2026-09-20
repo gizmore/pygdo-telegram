@@ -4,6 +4,8 @@ import tempfile
 import unittest
 from types import SimpleNamespace
 
+from telegram.constants import ChatMemberStatus
+
 from gdo.base.Application import Application
 from gdo.base.ModuleLoader import ModuleLoader
 from gdo.base.Render import Render, Mode
@@ -65,6 +67,16 @@ class TelegramTestCase(unittest.TestCase):
     def test_05_displayname_falls_back_to_telegram_name(self):
         user = SimpleNamespace(id=6394471947, username=None, full_name='Daniel')
         self.assertEqual('Daniel', Telegram.user_displayname(user))
+
+    def test_05c_membership_status_handles_restricted_members(self):
+        member = lambda status, is_member=False: SimpleNamespace(status=status, is_member=is_member)
+        self.assertTrue(Telegram.is_chat_member(member(ChatMemberStatus.MEMBER)))
+        self.assertTrue(Telegram.is_chat_member(member(ChatMemberStatus.ADMINISTRATOR)))
+        self.assertTrue(Telegram.is_chat_member(member(ChatMemberStatus.OWNER)))
+        self.assertTrue(Telegram.is_chat_member(member(ChatMemberStatus.RESTRICTED, True)))
+        self.assertFalse(Telegram.is_chat_member(member(ChatMemberStatus.RESTRICTED, False)))
+        self.assertFalse(Telegram.is_chat_member(member(ChatMemberStatus.LEFT)))
+        self.assertFalse(Telegram.is_chat_member(member(ChatMemberStatus.BANNED)))
 
     def test_05a_image_attachment_detects_photos_and_image_documents(self):
         photo = SimpleNamespace(file_id='photo-id', file_unique_id='photo-unique', file_size=123)

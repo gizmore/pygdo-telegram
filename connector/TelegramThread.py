@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from telegram import Update
+
 from gdo.base.Application import Application
 
 if TYPE_CHECKING:
@@ -16,4 +18,6 @@ class TelegramThread:
         app = self._connector._application
         await app.initialize()
         await app.start()
-        await app.updater.start_polling()
+        # Telegram excludes chat_member updates from its historical default.
+        # Ask explicitly so the connector receives group joins and leaves.
+        await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)

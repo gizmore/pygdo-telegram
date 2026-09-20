@@ -3,8 +3,8 @@ from pathlib import Path
 import time
 
 from telegram._update import Update
-from telegram.constants import ChatType, ParseMode
-from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes
+from telegram.constants import ChatType, ChatMemberStatus, ParseMode
+from telegram.ext import ApplicationBuilder, ChatMemberHandler, MessageHandler, ContextTypes
 
 from gdo.base.Application import Application
 from gdo.base.Logger import Logger
@@ -45,6 +45,18 @@ class Telegram(Connector):
     def user_displayname(user) -> str:
         """Prefer Telegram's human-visible name over its stable numeric ID."""
         return user.username or user.full_name or str(user.id)
+
+    @staticmethod
+    def is_chat_member(member) -> bool:
+        """Whether a Telegram ChatMember currently belongs to its chat."""
+        return member.status in (
+            ChatMemberStatus.MEMBER,
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        ) or (
+            member.status == ChatMemberStatus.RESTRICTED and
+            bool(getattr(member, 'is_member', False))
+        )
 
     @staticmethod
     def image_attachment(msg):
@@ -91,11 +103,38 @@ class Telegram(Connector):
         self._application = ApplicationBuilder().token(token).build()
         handler = MessageHandler(None, self.handle_telegram_message)
         self._application.add_handler(handler)
+        self._application.add_handler(ChatMemberHandler(
+            self.handle_telegram_member,
+            ChatMemberHandler.CHAT_MEMBER,
+        ))
         self._thread = TelegramThread(self)
         self._connected = True
         task = asyncio.create_task(self._thread.run(), name="Telegram")
         Application.TASKS.append(task)
         return True
+
+    async def handle_telegram_member(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Reflect Telegram group join/leave updates in the local channel roster."""
+        change = update.chat_member
+        if not change or not self.is_channel_chat(change.chat.type):
+            return
+        try:
+            await self.get_or_create_dog(change.chat._bot)
+            telegram_user = change.new_chat_member.user
+            displayname = self.user_displayname(telegram_user)
+            user = await self._server.get_or_create_user(str(telegram_user.id), displayname)
+            if user.get_displayname() != displayname:
+                user.save_val('user_displayname', displayname)
+            channel = self._server.get_or_create_channel(str(change.chat.id), change.chat.title)
+            was_member = self.is_chat_member(change.old_chat_member)
+            is_member = self.is_chat_member(change.new_chat_member)
+            if not was_member and is_member:
+                await self._server.on_user_joined(user, channel)
+                await channel.on_user_joined(user)
+            elif was_member and not is_member:
+                await channel.on_user_left(user)
+        except Exception as ex:
+            Logger.exception(ex)
 
     async def handle_telegram_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = update.edited_message or update.message
