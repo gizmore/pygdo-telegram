@@ -189,7 +189,8 @@ class Telegram(Connector):
         Logger.debug(f"{channel.render_name()} << {text}")
         # prefix = f'{message._env_user.render_name()}: ' if not message._thread_user else ''
         # text = f"{prefix}{text}"
-        await self.send_to_chat(channel.get_name(), text, message._env_reply_to)
+        reply_to = message._env_reply_to if message.wants_sender_prefix() else None
+        await self.send_to_chat(channel.get_name(), text, reply_to)
 
     async def gdo_send_to_user(self, message: Message, notice: bool=False):
         text = message._result
