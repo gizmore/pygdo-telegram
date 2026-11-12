@@ -147,6 +147,8 @@ class Telegram(Connector):
             chat = msg.chat
             await self.get_or_create_dog(chat._bot)
             usr = msg.from_user
+            if usr is None:
+                return  # A channel-origin message has no verified user sender.
             displayname = self.user_displayname(usr)
             user = await self._server.get_or_create_user(str(usr.id), displayname)
             # Existing Telegram accounts used to fall back to their numeric
@@ -167,6 +169,9 @@ class Telegram(Connector):
             message = Message(text, Mode.render_telegram)
             message.env_server(self._server)
             message.env_user(user, True)
+            # Anonymous admin/channel messages can carry Telegram's synthetic
+            # sender; never treat them as an authenticated user identity.
+            message.platform_identity(usr.id, trusted=msg.sender_chat is None)
             channel = None
             if self.is_channel_chat(chat.type):
                 channel = self._server.get_or_create_channel(str(chat.id), chat.title)
